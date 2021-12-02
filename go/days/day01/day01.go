@@ -1,4 +1,4 @@
-package days
+package day01
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func parseDay01Input(scanner *bufio.Scanner, readings chan<- int) {
+func parseInput(scanner *bufio.Scanner, readings chan<- int) {
 	for scanner.Scan() {
 		reading, err := strconv.Atoi(scanner.Text())
 		if err != nil {
@@ -49,7 +49,7 @@ func countWindowedIncreases(readings <-chan int) int {
 func Day01(part string) {
 	scanner := bufio.NewScanner(os.Stdin)
 	readings := make(chan int)
-	go parseDay01Input(scanner, readings)
+	go parseInput(scanner, readings)
 	partMap := map[string]func(<-chan int) int{
 		"1": countIncreases,
 		"2": countWindowedIncreases,

@@ -1,4 +1,4 @@
-package days
+package day02
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ type instruction struct {
 	distance  int
 }
 
-func parseDay02Input(scanner *bufio.Scanner, instructions chan<- instruction) {
+func parseInput(scanner *bufio.Scanner, instructions chan<- instruction) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, " ")
@@ -67,7 +67,7 @@ func aimedStep(instructions <-chan instruction) int {
 func Day02(part string) {
 	scanner := bufio.NewScanner(os.Stdin)
 	instructions := make(chan instruction)
-	go parseDay02Input(scanner, instructions)
+	go parseInput(scanner, instructions)
 	partMap := map[string]func(<-chan instruction) int{
 		"1": simpleStep,
 		"2": aimedStep,
