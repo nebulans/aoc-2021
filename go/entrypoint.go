@@ -5,6 +5,7 @@ import (
 	"aoc-2021/days/day02"
 	"fmt"
 	"github.com/alecthomas/kong"
+	"os"
 )
 
 var dayEntrypoints = map[string]func(string){
@@ -14,16 +15,19 @@ var dayEntrypoints = map[string]func(string){
 
 var CLI struct {
 	Debug bool
-	Day   string `arg:""`
-	Part  string `arg:""`
+	Day   string `arg:"" help:"Day to solve"`
+	Part  string `arg:"" help:"Part to solve"`
 }
 
 func main() {
-	ctx := kong.Parse(&CLI)
-	ctx.Run()
+	kong.Parse(&CLI)
 	dayFunc, found := dayEntrypoints[CLI.Day]
 	if !found {
-		panic(fmt.Sprintf("Unknown day '%s'", CLI.Day))
+		_, err := fmt.Fprintf(os.Stderr, "Unknown day '%s'\n", CLI.Day)
+		if err != nil {
+			panic(err)
+		}
+		os.Exit(2)
 	}
 	dayFunc(CLI.Part)
 }
