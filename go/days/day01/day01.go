@@ -3,7 +3,6 @@ package day01
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 )
 
@@ -46,13 +45,14 @@ func countWindowedIncreases(readings <-chan int) int {
 	return increases
 }
 
-func Day01(part string) {
-	scanner := bufio.NewScanner(os.Stdin)
+var partMap = map[string]func(<-chan int) int{
+	"1": countIncreases,
+	"2": countWindowedIncreases,
+}
+
+func Day01(part string, input *bufio.Scanner) (string, error) {
 	readings := make(chan int)
-	go parseInput(scanner, readings)
-	partMap := map[string]func(<-chan int) int{
-		"1": countIncreases,
-		"2": countWindowedIncreases,
-	}
-	fmt.Println(partMap[part](readings))
+	go parseInput(input, readings)
+	result := partMap[part](readings)
+	return fmt.Sprintf("%d", result), nil
 }

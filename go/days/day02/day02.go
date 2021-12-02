@@ -3,7 +3,6 @@ package day02
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -77,13 +76,14 @@ func aimedStep(instructions <-chan Instruction) int {
 	return track * depth
 }
 
-func Day02(part string) {
-	scanner := bufio.NewScanner(os.Stdin)
+var partMap = map[string]func(<-chan Instruction) int{
+	"1": simpleStep,
+	"2": aimedStep,
+}
+
+func Day02(part string, input *bufio.Scanner) (string, error) {
 	instructions := make(chan Instruction)
-	go parseInput(scanner, instructions)
-	partMap := map[string]func(<-chan Instruction) int{
-		"1": simpleStep,
-		"2": aimedStep,
-	}
-	fmt.Println(partMap[part](instructions))
+	go parseInput(input, instructions)
+	result := partMap[part](instructions)
+	return fmt.Sprintf("%d", result), nil
 }
