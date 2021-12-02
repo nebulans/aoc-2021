@@ -7,14 +7,21 @@ import (
 	"strconv"
 )
 
-func countIncreases(scanner *bufio.Scanner) int {
-	increases := -1
-	last := 0
+func parseDay01Input(scanner *bufio.Scanner, readings chan<- int) {
 	for scanner.Scan() {
 		reading, err := strconv.Atoi(scanner.Text())
 		if err != nil {
 			panic("Unable to parse int")
 		}
+		readings <- reading
+	}
+	close(readings)
+}
+
+func countIncreases(readings <-chan int) int {
+	increases := -1
+	last := 0
+	for reading := range readings {
 		if reading > last {
 			increases++
 		}
@@ -23,15 +30,11 @@ func countIncreases(scanner *bufio.Scanner) int {
 	return increases
 }
 
-func countWindowedIncreases(scanner *bufio.Scanner) int {
+func countWindowedIncreases(readings <-chan int) int {
 	increases := 0
 	buffer := []int{0, 0, 0}
 	position := 0
-	for scanner.Scan() {
-		reading, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			panic("Unable to parse int")
-		}
+	for reading := range readings {
 		if position >= 3 {
 			if reading > buffer[position%3] {
 				increases++
@@ -45,9 +48,11 @@ func countWindowedIncreases(scanner *bufio.Scanner) int {
 
 func Day01(part string) {
 	scanner := bufio.NewScanner(os.Stdin)
-	partMap := map[string]func(scanner2 *bufio.Scanner) int{
+	readings := make(chan int)
+	go parseDay01Input(scanner, readings)
+	partMap := map[string]func(<-chan int) int{
 		"1": countIncreases,
 		"2": countWindowedIncreases,
 	}
-	fmt.Println(partMap[part](scanner))
+	fmt.Println(partMap[part](readings))
 }

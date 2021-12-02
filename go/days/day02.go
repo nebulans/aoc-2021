@@ -8,9 +8,12 @@ import (
 	"strings"
 )
 
-func simpleStep(scanner *bufio.Scanner) int {
-	depth := 0
-	track := 0
+type instruction struct {
+	direction string
+	distance  int
+}
+
+func parseDay02Input(scanner *bufio.Scanner, instructions chan<- instruction) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, " ")
@@ -18,13 +21,22 @@ func simpleStep(scanner *bufio.Scanner) int {
 		if err != nil {
 			panic("Unable to parse int")
 		}
-		switch parts[0] {
+		instructions <- instruction{parts[0], displacement}
+	}
+	close(instructions)
+}
+
+func simpleStep(instructions <-chan instruction) int {
+	depth := 0
+	track := 0
+	for i := range instructions {
+		switch i.direction {
 		case "forward":
-			track += displacement
+			track += i.distance
 		case "down":
-			depth += displacement
+			depth += i.distance
 		case "up":
-			depth -= displacement
+			depth -= i.distance
 		default:
 			panic("Unrecognised direction")
 		}
@@ -32,25 +44,19 @@ func simpleStep(scanner *bufio.Scanner) int {
 	return track * depth
 }
 
-func aimedStep(scanner *bufio.Scanner) int {
+func aimedStep(instructions <-chan instruction) int {
 	depth := 0
 	track := 0
 	aim := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.Split(line, " ")
-		displacement, err := strconv.Atoi(parts[1])
-		if err != nil {
-			panic("Unable to parse int")
-		}
-		switch parts[0] {
+	for i := range instructions {
+		switch i.direction {
 		case "forward":
-			track += displacement
-			depth += displacement * aim
+			track += i.distance
+			depth += i.distance * aim
 		case "down":
-			aim += displacement
+			aim += i.distance
 		case "up":
-			aim -= displacement
+			aim -= i.distance
 		default:
 			panic("Unrecognised direction")
 		}
@@ -60,9 +66,11 @@ func aimedStep(scanner *bufio.Scanner) int {
 
 func Day02(part string) {
 	scanner := bufio.NewScanner(os.Stdin)
-	partMap := map[string]func(scanner2 *bufio.Scanner) int{
+	instructions := make(chan instruction)
+	go parseDay02Input(scanner, instructions)
+	partMap := map[string]func(<-chan instruction) int{
 		"1": simpleStep,
 		"2": aimedStep,
 	}
-	fmt.Println(partMap[part](scanner))
+	fmt.Println(partMap[part](instructions))
 }
