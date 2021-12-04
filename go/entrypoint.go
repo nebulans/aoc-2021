@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/alecthomas/kong"
 	"os"
+	"time"
 )
 
 var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
@@ -34,6 +35,7 @@ func main() {
 		}
 		os.Exit(2)
 	}
+	startTime := time.Now()
 	result, err := dayFunc(CLI.Part, bufio.NewScanner(os.Stdin))
 	if err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "Error reported by day function\n")
@@ -42,5 +44,7 @@ func main() {
 		}
 		os.Exit(2)
 	}
-	fmt.Println(result)
+	elapsed := time.Now().Sub(startTime)
+	fmt.Printf("Elapsed time: %s\n", elapsed)
+	fmt.Printf("\n%s\n", result)
 }
