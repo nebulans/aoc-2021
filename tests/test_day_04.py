@@ -40,6 +40,7 @@ class TestPart1(object):
 
 @pytest.mark.parametrize('solution', [
     GoSolution(4, 2),
+    GoSolution(4, '2am'),
 ], ids=lambda s: s.name)
 class TestPart2(object):
 

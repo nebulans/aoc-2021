@@ -38,5 +38,8 @@ class JavaSolution(Solution):
 
 
 class GoSolution(Solution):
-    name = 'Go'
     entrypoint = ['go/aog']
+
+    @property
+    def name(self):
+        return 'Go {} - {}'.format(self.day, self.part)

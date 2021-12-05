@@ -140,9 +140,32 @@ func losingScore(numbers []int, cards []BingoCard) int {
 	return 0
 }
 
+func losingArrayMask(numbers []int, cards []BingoCard) int {
+	mask := make([]bool, len(cards))
+	wins := 0
+	for _, n := range numbers {
+		for i := 0; i < len(cards); i++ {
+			if mask[i] {
+				continue
+			}
+			card := cards[i]
+			card.play(n)
+			if card.hasWon() {
+				wins++
+				if wins == len(cards) {
+					return card.score(n)
+				}
+				mask[i] = true
+			}
+		}
+	}
+	return 0
+}
+
 var partMap = map[string]func([]int, []BingoCard) int{
-	"1": winningScore,
-	"2": losingScore,
+	"1":   winningScore,
+	"2":   losingScore,
+	"2am": losingArrayMask,
 }
 
 func Day04(part string, input *bufio.Scanner) (string, error) {
