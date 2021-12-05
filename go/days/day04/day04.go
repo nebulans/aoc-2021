@@ -1,7 +1,7 @@
 package day04
 
 import (
-	"aoc-2021/util"
+	"aoc-2021/util/input"
 	"bufio"
 	"fmt"
 	"strconv"
@@ -98,7 +98,7 @@ func parseInts(strings []string) []int {
 }
 
 func parseInput(scanner *bufio.Scanner) ([]int, []BingoCard) {
-	scanner.Split(util.BlankLineSplitFunc)
+	scanner.Split(input.BlankLineSplitFunc)
 	// First "field" of input is call order of numbers
 	scanner.Scan()
 	numbers := parseInts(strings.Split(scanner.Text(), ","))
