@@ -8,23 +8,19 @@ import (
 	"strings"
 )
 
+type Vec2 struct {
+	x int
+	y int
+}
+
+func (vec *Vec2) add(other Vec2) Vec2 {
+	return Vec2{vec.x + other.x, vec.y + other.y}
+}
+
 type VentLine struct {
-	start [2]int
-	end   [2]int
-}
-
-func (v *VentLine) format() string {
-	return fmt.Sprintf("%d,%d -> %d,%d", v.start[0], v.start[1], v.end[0], v.end[1])
-}
-
-func (v *VentLine) isAxisAligned() bool {
-	if v.start[0] == v.end[0] {
-		return true
-	}
-	if v.start[1] == v.end[1] {
-		return true
-	}
-	return false
+	start     Vec2
+	end       Vec2
+	direction Vec2
 }
 
 func step(diff int) int {
@@ -37,38 +33,54 @@ func step(diff int) int {
 	return 0
 }
 
-func (v *VentLine) points() [][2]int {
-	var points [][2]int
-	pos := [2]int{v.start[0], v.start[1]}
+func NewVentLine(start Vec2, end Vec2) *VentLine {
+	line := VentLine{start: start, end: end}
+	line.direction = Vec2{
+		x: step(end.x - start.x),
+		y: step(end.y - start.y),
+	}
+	return &line
+}
+
+func (v *VentLine) format() string {
+	return fmt.Sprintf("%d,%d -> %d,%d", v.start.x, v.start.y, v.end.x, v.end.y)
+}
+
+func (v *VentLine) isAxisAligned() bool {
+	return v.direction.x == 0 || v.direction.y == 0
+}
+
+func (v *VentLine) points() []Vec2 {
+	var points []Vec2
+	pos := v.start
 	points = append(points, pos)
 	for pos != v.end {
-		pos[0] += step(v.end[0] - pos[0])
-		pos[1] += step(v.end[1] - pos[1])
+		pos = pos.add(v.direction)
 		points = append(points, pos)
 	}
 	return points
 }
 
 type Field struct {
-	positions map[[2]int]int
-	extents   [2]int
+	positions map[Vec2]int
+	extents   Vec2
 	max       int
 }
 
 func NewField() *Field {
 	return &Field{
-		positions: make(map[[2]int]int),
-		extents:   [2]int{0, 0},
+		positions: make(map[Vec2]int),
+		extents:   Vec2{0, 0},
 	}
 }
 
-func (f *Field) AddPoint(position [2]int) int {
+func (f *Field) AddPoint(position Vec2) int {
 	f.positions[position]++
-	if position[0] >= f.extents[0] {
-		f.extents[0] = position[0] + 1
+	if position.x >= f.extents.x {
+		f.extents.x = position.x + 1
 	}
-	if position[1] >= f.extents[1] {
-		f.extents[1] = position[1] + 1
+	if position.y >= f.extents.y {
+		f.extents.y = position.y + 1
 	}
 	newValue := f.positions[position]
 	if f.max < newValue {
@@ -78,11 +90,11 @@ func (f *Field) AddPoint(position [2]int) int {
 }
 
 func (f *Field) Values() []int {
-	values := make([]int, f.extents[0]*f.extents[1])
+	values := make([]int, f.extents.x*f.extents.y)
 	position := 0
-	for y := 0; y < f.extents[1]; y++ {
-		for x := 0; x < f.extents[0]; x++ {
-			values[position] = f.positions[[2]int{x, y}]
+	for y := 0; y < f.extents.y; y++ {
+		for x := 0; x < f.extents.x; x++ {
+			values[position] = f.positions[Vec2{x, y}]
 			position++
 		}
 	}
@@ -104,7 +116,7 @@ func (f *Field) Format() string {
 	cells := make([]string, len(values))
 	for i, v := range values {
 		sep := ""
-		if i%f.extents[0] == f.extents[0]-1 {
+		if i%f.extents.x == f.extents.x-1 {
 			sep = "\n"
 		}
 		if v == 0 {
@@ -125,10 +137,7 @@ func parseInput(scanner *bufio.Scanner, lines chan<- *VentLine) {
 		startY, _ := strconv.Atoi(elements[2])
 		endX, _ := strconv.Atoi(elements[3])
 		endY, _ := strconv.Atoi(elements[4])
-		lines <- &VentLine{
-			start: [2]int{startX, startY},
-			end:   [2]int{endX, endY},
-		}
+		lines <- NewVentLine(Vec2{startX, startY}, Vec2{endX, endY})
 	}
 	close(lines)
 }
@@ -149,8 +158,9 @@ func countMultiples(lines <-chan *VentLine, onlyAxisAligned bool) int {
 			multiples++
 		}
 	}
+	//fmt.Println(field.Format())
 	fmt.Printf("Higest count: %d\n", field.max)
-	fmt.Printf("Field size: %dx%d\n", field.extents[0], field.extents[1])
+	fmt.Printf("Field size: %dx%d\n", field.extents.x, field.extents.y)
 	return multiples
 }
 
