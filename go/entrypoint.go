@@ -7,6 +7,7 @@ import (
 	"aoc-2021/days/day04"
 	"aoc-2021/days/day05"
 	"aoc-2021/days/day06"
+	"aoc-2021/days/day07"
 	"bufio"
 	"fmt"
 	"github.com/alecthomas/kong"
@@ -21,6 +22,7 @@ var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
 	"4": day04.Day04,
 	"5": day05.Day05,
 	"6": day06.Day06,
+	"7": day07.Day07,
 }
 
 var CLI struct {

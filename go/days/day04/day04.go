@@ -4,7 +4,6 @@ import (
 	"aoc-2021/util/input"
 	"bufio"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -89,24 +88,16 @@ func (card *BingoCard) format() string {
 	return strings.Join(parts, "")
 }
 
-func parseInts(strings []string) []int {
-	numbers := make([]int, len(strings))
-	for i, n := range strings {
-		numbers[i], _ = strconv.Atoi(n)
-	}
-	return numbers
-}
-
 func parseInput(scanner *bufio.Scanner) ([]int, []BingoCard) {
 	scanner.Split(input.BlankLineSplitFunc)
 	// First "field" of input is call order of numbers
 	scanner.Scan()
-	numbers := parseInts(strings.Split(scanner.Text(), ","))
+	numbers := input.SplitInts(scanner.Text(), ",")
 	// Subsequent fields are bingo cards
 	var boards []BingoCard
 	for scanner.Scan() {
 		line := scanner.Text()
-		boardNumbers := parseInts(strings.Fields(line))
+		boardNumbers := input.ParseInts(strings.Fields(line))
 		boards = append(boards, makeCard(boardNumbers))
 	}
 	return numbers, boards
