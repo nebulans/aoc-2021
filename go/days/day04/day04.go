@@ -13,8 +13,8 @@ type BingoCard struct {
 	seen    []bool
 }
 
-func makeCard(numbers []int) BingoCard {
-	return BingoCard{
+func makeCard(numbers []int) *BingoCard {
+	return &BingoCard{
 		numbers: numbers,
 		seen:    make([]bool, len(numbers)),
 	}
@@ -92,7 +92,7 @@ func (card *BingoCard) format() string {
 type Puzzle struct {
 	framework.PuzzleBase
 	calls []int
-	cards []BingoCard
+	cards []*BingoCard
 }
 
 func (p *Puzzle) Init() {
