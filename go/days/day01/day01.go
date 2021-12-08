@@ -6,21 +6,33 @@ import (
 	"strconv"
 )
 
-func parseInput(scanner *bufio.Scanner, readings chan<- int) {
+type Puzzle struct {
+	readings chan int
+}
+
+func (p *Puzzle) Init() {
+	p.readings = make(chan int)
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	go p.asyncParse(scanner)
+}
+
+func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 	for scanner.Scan() {
 		reading, err := strconv.Atoi(scanner.Text())
 		if err != nil {
 			panic("Unable to parse int")
 		}
-		readings <- reading
+		p.readings <- reading
 	}
-	close(readings)
+	close(p.readings)
 }
 
-func countIncreases(readings <-chan int) int {
+func (p *Puzzle) countIncreases() int {
 	increases := -1
 	last := 0
-	for reading := range readings {
+	for reading := range p.readings {
 		if reading > last {
 			increases++
 		}
@@ -29,11 +41,11 @@ func countIncreases(readings <-chan int) int {
 	return increases
 }
 
-func countWindowedIncreases(readings <-chan int) int {
+func (p *Puzzle) countWindowedIncreases() int {
 	increases := 0
 	buffer := []int{0, 0, 0}
 	position := 0
-	for reading := range readings {
+	for reading := range p.readings {
 		if position >= 3 {
 			if reading > buffer[position%3] {
 				increases++
@@ -45,14 +57,19 @@ func countWindowedIncreases(readings <-chan int) int {
 	return increases
 }
 
-var partMap = map[string]func(<-chan int) int{
-	"1": countIncreases,
-	"2": countWindowedIncreases,
+func (p *Puzzle) Dispatch(part string) (string, error) {
+	result := 0
+	switch part {
+	case "1":
+		result = p.countIncreases()
+	case "2":
+		result = p.countWindowedIncreases()
+	}
+	return fmt.Sprintf("%d", result), nil
 }
 
-func Day01(part string, input *bufio.Scanner) (string, error) {
-	readings := make(chan int)
-	go parseInput(input, readings)
-	result := partMap[part](readings)
-	return fmt.Sprintf("%d", result), nil
+func (p *Puzzle) Run(part string, scanner *bufio.Scanner) (string, error) {
+	p.Init()
+	p.Parse(scanner)
+	return p.Dispatch(part)
 }

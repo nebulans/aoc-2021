@@ -9,6 +9,7 @@ import (
 	"aoc-2021/days/day06"
 	"aoc-2021/days/day07"
 	"aoc-2021/days/day08"
+	"aoc-2021/framework"
 	"bufio"
 	"fmt"
 	"github.com/alecthomas/kong"
@@ -17,7 +18,6 @@ import (
 )
 
 var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
-	"1": day01.Day01,
 	"2": day02.Day02,
 	"3": day03.Day03,
 	"4": day04.Day04,
@@ -25,6 +25,10 @@ var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
 	"6": day06.Day06,
 	"7": day07.Day07,
 	"8": day08.Day08,
+}
+
+var dayStructs = map[string]framework.Puzzle{
+	"1": &day01.Puzzle{},
 }
 
 var CLI struct {
@@ -35,8 +39,9 @@ var CLI struct {
 
 func main() {
 	kong.Parse(&CLI)
-	dayFunc, found := dayEntrypoints[CLI.Day]
-	if !found {
+	dayFunc, funcFound := dayEntrypoints[CLI.Day]
+	dayStruct, structFound := dayStructs[CLI.Day]
+	if !funcFound && !structFound {
 		_, err := fmt.Fprintf(os.Stderr, "Unknown day '%s'\n", CLI.Day)
 		if err != nil {
 			panic(err)
@@ -44,7 +49,13 @@ func main() {
 		os.Exit(2)
 	}
 	startTime := time.Now()
-	result, err := dayFunc(CLI.Part, bufio.NewScanner(os.Stdin))
+	var result string
+	var err error
+	if structFound {
+		result, err = dayStruct.Run(CLI.Part, bufio.NewScanner(os.Stdin))
+	} else {
+		result, err = dayFunc(CLI.Part, bufio.NewScanner(os.Stdin))
+	}
 	if err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "Error reported by day function\n")
 		if err != nil {
