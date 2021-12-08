@@ -1,6 +1,7 @@
 package day05
 
 import (
+	"aoc-2021/framework"
 	"aoc-2021/util/math/vector"
 	"bufio"
 	"fmt"
@@ -18,7 +19,7 @@ type Field struct {
 func NewField() *Field {
 	return &Field{
 		positions: make(map[vector.Vec2]int),
-		extents:   vector.Vec2{0, 0},
+		extents:   vector.Vec2{X: 0, Y: 0},
 	}
 }
 
@@ -42,7 +43,7 @@ func (f *Field) Values() []int {
 	position := 0
 	for y := 0; y < f.extents.Y; y++ {
 		for x := 0; x < f.extents.X; x++ {
-			values[position] = f.positions[vector.Vec2{x, y}]
+			values[position] = f.positions[vector.Vec2{X: x, Y: y}]
 			position++
 		}
 	}
@@ -76,7 +77,24 @@ func (f *Field) Format() string {
 	return strings.Join(cells, "")
 }
 
-func parseInput(scanner *bufio.Scanner, lines chan<- *vector.EndpointLine) {
+type Puzzle struct {
+	framework.PuzzleBase
+	lines chan *vector.EndpointLine
+}
+
+func (p *Puzzle) Init() {
+	p.lines = make(chan *vector.EndpointLine)
+	p.Parts = map[string]func() int{
+		"1": func() int { return p.countMultiples(true) },
+		"2": func() int { return p.countMultiples(false) },
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	go p.asyncParse(scanner)
+}
+
+func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 	pattern, _ := regexp.Compile("([0-9]+),([0-9]+) -> ([0-9]+),([0-9]+)")
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -85,14 +103,14 @@ func parseInput(scanner *bufio.Scanner, lines chan<- *vector.EndpointLine) {
 		startY, _ := strconv.Atoi(elements[2])
 		endX, _ := strconv.Atoi(elements[3])
 		endY, _ := strconv.Atoi(elements[4])
-		lines <- vector.NewEndpointLine(vector.Vec2{startX, startY}, vector.Vec2{endX, endY})
+		p.lines <- vector.NewEndpointLine(vector.Vec2{X: startX, Y: startY}, vector.Vec2{X: endX, Y: endY})
 	}
-	close(lines)
+	close(p.lines)
 }
 
-func countMultiples(lines <-chan *vector.EndpointLine, onlyAxisAligned bool) int {
+func (p *Puzzle) countMultiples(onlyAxisAligned bool) int {
 	field := NewField()
-	for line := range lines {
+	for line := range p.lines {
 		if onlyAxisAligned {
 			if line.Direction.X != 0 && line.Direction.Y != 0 {
 				continue
@@ -112,24 +130,4 @@ func countMultiples(lines <-chan *vector.EndpointLine, onlyAxisAligned bool) int
 	fmt.Printf("Higest count: %d\n", field.max)
 	fmt.Printf("Field size: %dx%d\n", field.extents.X, field.extents.Y)
 	return multiples
-}
-
-func countAxisAlignedMultiples(lines <-chan *vector.EndpointLine) int {
-	return countMultiples(lines, true)
-}
-
-func countAllMultiples(lines <-chan *vector.EndpointLine) int {
-	return countMultiples(lines, false)
-}
-
-var partMap = map[string]func(<-chan *vector.EndpointLine) int{
-	"1": countAxisAlignedMultiples,
-	"2": countAllMultiples,
-}
-
-func Day05(part string, input *bufio.Scanner) (string, error) {
-	lines := make(chan *vector.EndpointLine)
-	go parseInput(input, lines)
-	result := partMap[part](lines)
-	return fmt.Sprintf("%d", result), nil
 }
