@@ -18,7 +18,6 @@ import (
 )
 
 var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
-	"4": day04.Day04,
 	"5": day05.Day05,
 	"6": day06.Day06,
 	"7": day07.Day07,
@@ -29,6 +28,7 @@ var dayStructs = map[string]framework.Puzzle{
 	"1": &day01.Puzzle{},
 	"2": &day02.Puzzle{},
 	"3": &day03.Puzzle{},
+	"4": &day04.Puzzle{},
 }
 
 var CLI struct {

@@ -1,6 +1,7 @@
 package day04
 
 import (
+	"aoc-2021/framework"
 	"aoc-2021/util/input"
 	"bufio"
 	"fmt"
@@ -88,24 +89,36 @@ func (card *BingoCard) format() string {
 	return strings.Join(parts, "")
 }
 
-func parseInput(scanner *bufio.Scanner) ([]int, []BingoCard) {
+type Puzzle struct {
+	framework.PuzzleBase
+	calls []int
+	cards []BingoCard
+}
+
+func (p *Puzzle) Init() {
+	p.Parts = map[string]func() int{
+		"1":   p.winningScore,
+		"2":   p.losingScore,
+		"2am": p.losingArrayMask,
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 	scanner.Split(input.BlankLineSplitFunc)
 	// First "field" of input is call order of numbers
 	scanner.Scan()
-	numbers := input.SplitInts(scanner.Text(), ",")
+	p.calls = input.SplitInts(scanner.Text(), ",")
 	// Subsequent fields are bingo cards
-	var boards []BingoCard
 	for scanner.Scan() {
 		line := scanner.Text()
 		boardNumbers := input.ParseInts(strings.Fields(line))
-		boards = append(boards, makeCard(boardNumbers))
+		p.cards = append(p.cards, makeCard(boardNumbers))
 	}
-	return numbers, boards
 }
 
-func winningScore(numbers []int, cards []BingoCard) int {
-	for _, n := range numbers {
-		for _, card := range cards {
+func (p *Puzzle) winningScore() int {
+	for _, n := range p.calls {
+		for _, card := range p.cards {
 			card.play(n)
 			if card.hasWon() {
 				return card.score(n)
@@ -115,35 +128,35 @@ func winningScore(numbers []int, cards []BingoCard) int {
 	return 0
 }
 
-func losingScore(numbers []int, cards []BingoCard) int {
-	for _, n := range numbers {
-		for i := len(cards) - 1; i >= 0; i-- {
-			card := cards[i]
+func (p *Puzzle) losingScore() int {
+	for _, n := range p.calls {
+		for i := len(p.cards) - 1; i >= 0; i-- {
+			card := p.cards[i]
 			card.play(n)
 			if card.hasWon() {
-				if len(cards) == 1 {
+				if len(p.cards) == 1 {
 					return card.score(n)
 				}
-				cards = append(cards[:i], cards[i+1:]...)
+				p.cards = append(p.cards[:i], p.cards[i+1:]...)
 			}
 		}
 	}
 	return 0
 }
 
-func losingArrayMask(numbers []int, cards []BingoCard) int {
-	mask := make([]bool, len(cards))
+func (p *Puzzle) losingArrayMask() int {
+	mask := make([]bool, len(p.cards))
 	wins := 0
-	for _, n := range numbers {
-		for i := 0; i < len(cards); i++ {
+	for _, n := range p.calls {
+		for i := 0; i < len(p.cards); i++ {
 			if mask[i] {
 				continue
 			}
-			card := cards[i]
+			card := p.cards[i]
 			card.play(n)
 			if card.hasWon() {
 				wins++
-				if wins == len(cards) {
+				if wins == len(p.cards) {
 					return card.score(n)
 				}
 				mask[i] = true
@@ -151,16 +164,4 @@ func losingArrayMask(numbers []int, cards []BingoCard) int {
 		}
 	}
 	return 0
-}
-
-var partMap = map[string]func([]int, []BingoCard) int{
-	"1":   winningScore,
-	"2":   losingScore,
-	"2am": losingArrayMask,
-}
-
-func Day04(part string, input *bufio.Scanner) (string, error) {
-	numbers, cards := parseInput(input)
-	result := partMap[part](numbers, cards)
-	return fmt.Sprintf("%d", result), nil
 }
