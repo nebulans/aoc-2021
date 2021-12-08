@@ -112,3 +112,24 @@ func TestSumFunctions(t *testing.T) {
 		})
 	}
 }
+
+func TestPow(t *testing.T) {
+	var tests = []struct {
+		val, exp int
+		want     int
+	}{
+		{10, 0, 1},
+		{10, 1, 10},
+		{10, 2, 100},
+		{10, 3, 1000},
+	}
+	for _, tt := range tests {
+		testName := fmt.Sprintf("Pow(%d, %d)==%d", tt.val, tt.exp, tt.want)
+		t.Run(testName, func(t *testing.T) {
+			ans := Pow(tt.val, tt.exp)
+			if ans != tt.want {
+				t.Errorf("got %d, want %d", ans, tt.want)
+			}
+		})
+	}
+}

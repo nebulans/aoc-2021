@@ -69,3 +69,14 @@ func SumBigInt(a []*big.Int) *big.Int {
 	}
 	return s
 }
+
+func Pow(value int, exponent int) int {
+	if exponent == 0 {
+		return 1
+	}
+	v := value
+	for i := 0; i < exponent-1; i++ {
+		v *= value
+	}
+	return v
+}
