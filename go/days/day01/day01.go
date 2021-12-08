@@ -1,19 +1,19 @@
 package day01
 
 import (
+	"aoc-2021/framework"
 	"bufio"
-	"fmt"
 	"strconv"
 )
 
 type Puzzle struct {
+	framework.PuzzleBase
 	readings chan int
-	parts    map[string]func() int
 }
 
 func (p *Puzzle) Init() {
 	p.readings = make(chan int)
-	p.parts = map[string]func() int{
+	p.Parts = map[string]func() int{
 		"1": p.countIncreases,
 		"2": p.countWindowedIncreases,
 	}
@@ -60,9 +60,4 @@ func (p *Puzzle) countWindowedIncreases() int {
 		position++
 	}
 	return increases
-}
-
-func (p *Puzzle) Dispatch(part string) (string, error) {
-	result := p.parts[part]()
-	return fmt.Sprintf("%d", result), nil
 }

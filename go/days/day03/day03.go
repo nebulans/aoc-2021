@@ -1,8 +1,8 @@
 package day03
 
 import (
+	"aoc-2021/framework"
 	"bufio"
-	"fmt"
 	"math/bits"
 )
 
@@ -51,13 +51,13 @@ func iterativeFilter(numbers []uint64, filterMask uint64, targetOnes bool) uint6
 }
 
 type Puzzle struct {
+	framework.PuzzleBase
 	readings chan uint64
-	parts    map[string]func() int
 }
 
 func (p *Puzzle) Init() {
 	p.readings = make(chan uint64)
-	p.parts = map[string]func() int{
+	p.Parts = map[string]func() int{
 		"1": p.mostFrequentComplementProduct,
 		"2": p.iterativeFilterProduct,
 	}
@@ -108,9 +108,4 @@ func (p *Puzzle) iterativeFilterProduct() int {
 	ones := iterativeFilter(values, mask, true)
 	zeroes := iterativeFilter(values, mask, false)
 	return int(ones * zeroes)
-}
-
-func (p *Puzzle) Dispatch(part string) (string, error) {
-	result := p.parts[part]()
-	return fmt.Sprintf("%d", result), nil
 }

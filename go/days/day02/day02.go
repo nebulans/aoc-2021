@@ -1,8 +1,8 @@
 package day02
 
 import (
+	"aoc-2021/framework"
 	"bufio"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -21,13 +21,13 @@ type Instruction struct {
 }
 
 type Puzzle struct {
+	framework.PuzzleBase
 	instructions chan Instruction
-	parts        map[string]func() int
 }
 
 func (p *Puzzle) Init() {
 	p.instructions = make(chan Instruction)
-	p.parts = map[string]func() int{
+	p.Parts = map[string]func() int{
 		"1": p.simpleStep,
 		"2": p.aimedStep,
 	}
@@ -91,9 +91,4 @@ func (p *Puzzle) aimedStep() int {
 		}
 	}
 	return track * depth
-}
-
-func (p *Puzzle) Dispatch(part string) (string, error) {
-	result := p.parts[part]()
-	return fmt.Sprintf("%d", result), nil
 }
