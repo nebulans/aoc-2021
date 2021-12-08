@@ -20,7 +20,24 @@ type Instruction struct {
 	distance  int
 }
 
-func parseInput(scanner *bufio.Scanner, instructions chan<- Instruction) {
+type Puzzle struct {
+	instructions chan Instruction
+	parts        map[string]func() int
+}
+
+func (p *Puzzle) Init() {
+	p.instructions = make(chan Instruction)
+	p.parts = map[string]func() int{
+		"1": p.simpleStep,
+		"2": p.aimedStep,
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	go p.asyncParse(scanner)
+}
+
+func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 	directionMap := map[string]Direction{
 		"forward": directionForward,
 		"down":    directionDown,
@@ -37,15 +54,15 @@ func parseInput(scanner *bufio.Scanner, instructions chan<- Instruction) {
 		if !found {
 			panic("Unable to parse direction")
 		}
-		instructions <- Instruction{direction, displacement}
+		p.instructions <- Instruction{direction, displacement}
 	}
-	close(instructions)
+	close(p.instructions)
 }
 
-func simpleStep(instructions <-chan Instruction) int {
+func (p *Puzzle) simpleStep() int {
 	depth := 0
 	track := 0
-	for instruction := range instructions {
+	for instruction := range p.instructions {
 		switch instruction.direction {
 		case directionForward:
 			track += instruction.distance
@@ -58,11 +75,11 @@ func simpleStep(instructions <-chan Instruction) int {
 	return track * depth
 }
 
-func aimedStep(instructions <-chan Instruction) int {
+func (p *Puzzle) aimedStep() int {
 	depth := 0
 	track := 0
 	aim := 0
-	for instruction := range instructions {
+	for instruction := range p.instructions {
 		switch instruction.direction {
 		case directionForward:
 			track += instruction.distance
@@ -76,14 +93,7 @@ func aimedStep(instructions <-chan Instruction) int {
 	return track * depth
 }
 
-var partMap = map[string]func(<-chan Instruction) int{
-	"1": simpleStep,
-	"2": aimedStep,
-}
-
-func Day02(part string, input *bufio.Scanner) (string, error) {
-	instructions := make(chan Instruction)
-	go parseInput(input, instructions)
-	result := partMap[part](instructions)
+func (p *Puzzle) Dispatch(part string) (string, error) {
+	result := p.parts[part]()
 	return fmt.Sprintf("%d", result), nil
 }

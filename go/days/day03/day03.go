@@ -6,20 +6,6 @@ import (
 	"math/bits"
 )
 
-func parseInput(scanner *bufio.Scanner, readings chan<- uint64) {
-	for scanner.Scan() {
-		value := uint64(0)
-		text := scanner.Text()
-		for pos := 0; pos < len(text); pos++ {
-			if text[len(text)-pos-1] == '1' {
-				value += bits.RotateLeft64(uint64(1), pos)
-			}
-		}
-		readings <- value
-	}
-	close(readings)
-}
-
 func mostFrequentBit(values []uint64) uint64 {
 	counts := [64]int{}
 	for _, value := range values {
@@ -40,20 +26,6 @@ func mostFrequentBit(values []uint64) uint64 {
 		}
 	}
 	return result
-}
-
-func mostFrequentComplementProduct(readings <-chan uint64) int {
-	var values []uint64
-	leadingZeros := 64
-	for reading := range readings {
-		values = append(values, reading)
-		if bits.LeadingZeros64(reading) < leadingZeros {
-			leadingZeros = bits.LeadingZeros64(reading)
-		}
-	}
-	mask := bits.RotateLeft64(uint64(1), 64-leadingZeros) - 1
-	ones := mostFrequentBit(values)
-	return int(ones * (ones ^ mask))
 }
 
 func iterativeFilter(numbers []uint64, filterMask uint64, targetOnes bool) uint64 {
@@ -78,10 +50,55 @@ func iterativeFilter(numbers []uint64, filterMask uint64, targetOnes bool) uint6
 	return uint64(0)
 }
 
-func iterativeFilterProduct(readings <-chan uint64) int {
+type Puzzle struct {
+	readings chan uint64
+	parts    map[string]func() int
+}
+
+func (p *Puzzle) Init() {
+	p.readings = make(chan uint64)
+	p.parts = map[string]func() int{
+		"1": p.mostFrequentComplementProduct,
+		"2": p.iterativeFilterProduct,
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	go p.asyncParse(scanner)
+}
+
+func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
+	for scanner.Scan() {
+		value := uint64(0)
+		text := scanner.Text()
+		for pos := 0; pos < len(text); pos++ {
+			if text[len(text)-pos-1] == '1' {
+				value += bits.RotateLeft64(uint64(1), pos)
+			}
+		}
+		p.readings <- value
+	}
+	close(p.readings)
+}
+
+func (p *Puzzle) mostFrequentComplementProduct() int {
 	var values []uint64
 	leadingZeros := 64
-	for reading := range readings {
+	for reading := range p.readings {
+		values = append(values, reading)
+		if bits.LeadingZeros64(reading) < leadingZeros {
+			leadingZeros = bits.LeadingZeros64(reading)
+		}
+	}
+	mask := bits.RotateLeft64(uint64(1), 64-leadingZeros) - 1
+	ones := mostFrequentBit(values)
+	return int(ones * (ones ^ mask))
+}
+
+func (p *Puzzle) iterativeFilterProduct() int {
+	var values []uint64
+	leadingZeros := 64
+	for reading := range p.readings {
 		values = append(values, reading)
 		if bits.LeadingZeros64(reading) < leadingZeros {
 			leadingZeros = bits.LeadingZeros64(reading)
@@ -93,14 +110,7 @@ func iterativeFilterProduct(readings <-chan uint64) int {
 	return int(ones * zeroes)
 }
 
-var partMap = map[string]func(<-chan uint64) int{
-	"1": mostFrequentComplementProduct,
-	"2": iterativeFilterProduct,
-}
-
-func Day03(part string, input *bufio.Scanner) (string, error) {
-	readings := make(chan uint64)
-	go parseInput(input, readings)
-	result := partMap[part](readings)
+func (p *Puzzle) Dispatch(part string) (string, error) {
+	result := p.parts[part]()
 	return fmt.Sprintf("%d", result), nil
 }

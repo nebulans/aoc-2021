@@ -8,10 +8,15 @@ import (
 
 type Puzzle struct {
 	readings chan int
+	parts    map[string]func() int
 }
 
 func (p *Puzzle) Init() {
 	p.readings = make(chan int)
+	p.parts = map[string]func() int{
+		"1": p.countIncreases,
+		"2": p.countWindowedIncreases,
+	}
 }
 
 func (p *Puzzle) Parse(scanner *bufio.Scanner) {
@@ -58,18 +63,6 @@ func (p *Puzzle) countWindowedIncreases() int {
 }
 
 func (p *Puzzle) Dispatch(part string) (string, error) {
-	result := 0
-	switch part {
-	case "1":
-		result = p.countIncreases()
-	case "2":
-		result = p.countWindowedIncreases()
-	}
+	result := p.parts[part]()
 	return fmt.Sprintf("%d", result), nil
-}
-
-func (p *Puzzle) Run(part string, scanner *bufio.Scanner) (string, error) {
-	p.Init()
-	p.Parse(scanner)
-	return p.Dispatch(part)
 }

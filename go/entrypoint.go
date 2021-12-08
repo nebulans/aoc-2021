@@ -18,8 +18,6 @@ import (
 )
 
 var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
-	"2": day02.Day02,
-	"3": day03.Day03,
 	"4": day04.Day04,
 	"5": day05.Day05,
 	"6": day06.Day06,
@@ -29,6 +27,8 @@ var dayEntrypoints = map[string]func(string, *bufio.Scanner) (string, error){
 
 var dayStructs = map[string]framework.Puzzle{
 	"1": &day01.Puzzle{},
+	"2": &day02.Puzzle{},
+	"3": &day03.Puzzle{},
 }
 
 var CLI struct {
@@ -52,7 +52,7 @@ func main() {
 	var result string
 	var err error
 	if structFound {
-		result, err = dayStruct.Run(CLI.Part, bufio.NewScanner(os.Stdin))
+		result, err = framework.RunPuzzle(dayStruct, CLI.Part, bufio.NewScanner(os.Stdin))
 	} else {
 		result, err = dayFunc(CLI.Part, bufio.NewScanner(os.Stdin))
 	}
