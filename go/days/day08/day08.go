@@ -18,21 +18,48 @@ var segmentMap = map[rune]uint8{
 	'g': uint8(0b01000000),
 }
 
+type DisplayMapper struct {
+	digitMap map[uint8]int
+	valueMap map[int]uint8
+}
+
+func NewDisplayMapper() *DisplayMapper {
+	return &DisplayMapper{
+		digitMap: map[uint8]int{},
+		valueMap: map[int]uint8{},
+	}
+}
+
+func (m *DisplayMapper) Map(digit uint8, value int) {
+	m.digitMap[digit] = value
+	m.valueMap[value] = digit
+}
+
+func (m *DisplayMapper) GetDigit(value int) uint8 {
+	return m.valueMap[value]
+}
+
+func (m *DisplayMapper) GetValue(digit uint8) int {
+	return m.digitMap[digit]
+}
+
+func (m *DisplayMapper) SharedSegments(digit uint8, value int) int {
+	return bits.OnesCount8(digit & m.GetDigit(value))
+}
+
 type DisplayState struct {
 	digits [10]uint8
 	output [4]uint8
 }
 
 func (d *DisplayState) Decode() int {
-	digitMap := map[uint8]int{}
-	valueMap := map[int]uint8{}
+	mapper := NewDisplayMapper()
 	// Resolve easy digits
 	lengthMap := map[int]int{2: 1, 3: 7, 4: 4, 7: 8}
 	for _, digit := range d.digits {
 		val, found := lengthMap[bits.OnesCount8(digit)]
 		if found {
-			digitMap[digit] = val
-			valueMap[val] = digit
+			mapper.Map(digit, val)
 		}
 
 	}
@@ -41,36 +68,44 @@ func (d *DisplayState) Decode() int {
 		switch bits.OnesCount8(digit) {
 		case 5:
 			// 2, 3 and 5
-			if bits.OnesCount8(digit&valueMap[1]) == 2 {
-				digitMap[digit] = 3
-				valueMap[3] = digit
-			} else if bits.OnesCount8(digit&valueMap[4]) == 3 {
-				digitMap[digit] = 5
-				valueMap[5] = digit
+			if mapper.SharedSegments(digit, 1) == 2 {
+				mapper.Map(digit, 3)
+			} else if mapper.SharedSegments(digit, 4) == 3 {
+				mapper.Map(digit, 5)
 			} else {
-				digitMap[digit] = 2
-				valueMap[2] = digit
+				mapper.Map(digit, 2)
 			}
 		case 6:
-			if bits.OnesCount8(digit&valueMap[4]) == 4 {
-				digitMap[digit] = 9
-				valueMap[9] = digit
-			} else if bits.OnesCount8(digit&valueMap[1]) == 2 {
-				digitMap[digit] = 0
-				valueMap[0] = digit
+			// 6, 9 and 0
+			if mapper.SharedSegments(digit, 4) == 4 {
+				mapper.Map(digit, 9)
+			} else if mapper.SharedSegments(digit, 1) == 2 {
+				mapper.Map(digit, 0)
 			} else {
-				digitMap[digit] = 6
-				valueMap[6] = digit
+				mapper.Map(digit, 6)
 			}
 		}
 	}
 	// Calculate final value
 	result := 0
 	for i, v := range d.output {
-		digit := digitMap[v]
+		digit := mapper.GetValue(v)
 		result += digit * integer.Pow(10, len(d.output)-i-1)
 	}
 	return result
+}
+
+func parseDigitSet(line string) []uint8 {
+	parts := strings.Split(line, " ")
+	digits := make([]uint8, len(parts))
+	for i, s := range parts {
+		sum := uint8(0)
+		for _, r := range s {
+			sum += segmentMap[r]
+		}
+		digits[i] = sum
+	}
+	return digits
 }
 
 func parseInput(scanner *bufio.Scanner, displays chan<- *DisplayState) {
@@ -78,21 +113,9 @@ func parseInput(scanner *bufio.Scanner, displays chan<- *DisplayState) {
 		text := scanner.Text()
 		parts := strings.Split(text, " | ")
 		digits := [10]uint8{}
-		for i, s := range strings.Split(parts[0], " ") {
-			sum := uint8(0)
-			for _, r := range s {
-				sum += segmentMap[r]
-			}
-			digits[i] = sum
-		}
+		copy(digits[:], parseDigitSet(parts[0]))
 		output := [4]uint8{}
-		for i, s := range strings.Split(parts[1], " ") {
-			sum := uint8(0)
-			for _, r := range s {
-				sum += segmentMap[r]
-			}
-			output[i] = sum
-		}
+		copy(output[:], parseDigitSet(parts[1]))
 		state := &DisplayState{
 			digits: digits,
 			output: output,
