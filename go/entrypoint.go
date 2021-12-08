@@ -57,7 +57,7 @@ func main() {
 		result, err = dayFunc(CLI.Part, bufio.NewScanner(os.Stdin))
 	}
 	if err != nil {
-		_, err := fmt.Fprintf(os.Stderr, "Error reported by day function\n")
+		_, err := fmt.Fprintf(os.Stderr, "Error reported by day function: %v", err)
 		if err != nil {
 			panic(err)
 		}
