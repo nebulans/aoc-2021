@@ -1,6 +1,7 @@
 package day06
 
 import (
+	"aoc-2021/framework"
 	"aoc-2021/util/math/integer"
 	"bufio"
 	"fmt"
@@ -9,25 +10,36 @@ import (
 	"strings"
 )
 
-func parseInput(scanner *bufio.Scanner) []int {
+type Puzzle struct {
+	framework.PuzzleBase
+	initialState []int
+}
+
+func (p *Puzzle) Init() {
+	p.StringParts = map[string]func() string{
+		"1": func() string { return p.Simulate(80) },
+		"2": func() string { return p.Simulate(256) },
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 	scanner.Scan()
 	text := scanner.Text()
 	parts := strings.Split(text, ",")
-	out := make([]int, len(parts))
+	p.initialState = make([]int, len(parts))
 	for i, s := range parts {
 		v, _ := strconv.Atoi(s)
-		out[i] = v
+		p.initialState[i] = v
 	}
-	return out
 }
 
-func simulate(initialState []int, steps int) string {
+func (p *Puzzle) Simulate(steps int) string {
 	ages := [9]*big.Int{}
 	for i := 0; i < 9; i++ {
 		ages[i] = big.NewInt(0)
 	}
 	increment := big.NewInt(1)
-	for _, s := range initialState {
+	for _, s := range p.initialState {
 		ages[s].Add(ages[s], increment)
 	}
 	for i := 0; i < steps; i++ {
@@ -45,15 +57,4 @@ func simulate(initialState []int, steps int) string {
 	sum := integer.SumBigInt(ages[:])
 	digits := fmt.Sprintf("%d", sum)
 	return digits
-}
-
-var partMap = map[string]func([]int) string{
-	"1": func(ages []int) string { return simulate(ages, 80) },
-	"2": func(ages []int) string { return simulate(ages, 256) },
-}
-
-func Day06(part string, input *bufio.Scanner) (string, error) {
-	timers := parseInput(input)
-	result := partMap[part](timers)
-	return result, nil
 }

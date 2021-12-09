@@ -1,9 +1,9 @@
 package day08
 
 import (
+	"aoc-2021/framework"
 	"aoc-2021/util/math/integer"
 	"bufio"
-	"fmt"
 	"math/bits"
 	"strings"
 )
@@ -108,7 +108,24 @@ func parseDigitSet(line string) []uint8 {
 	return digits
 }
 
-func parseInput(scanner *bufio.Scanner, displays chan<- *DisplayState) {
+type Puzzle struct {
+	framework.PuzzleBase
+	displays chan *DisplayState
+}
+
+func (p *Puzzle) Init() {
+	p.displays = make(chan *DisplayState)
+	p.Parts = map[string]func() int{
+		"1": p.countUniqueReprInOutput,
+		"2": p.sumOutput,
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	go p.asyncParse(scanner)
+}
+
+func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 	for scanner.Scan() {
 		text := scanner.Text()
 		parts := strings.Split(text, " | ")
@@ -120,12 +137,12 @@ func parseInput(scanner *bufio.Scanner, displays chan<- *DisplayState) {
 			digits: digits,
 			output: output,
 		}
-		displays <- state
+		p.displays <- state
 	}
-	close(displays)
+	close(p.displays)
 }
 
-func countUniqueReprInOutput(displays <-chan *DisplayState) int {
+func (p *Puzzle) countUniqueReprInOutput() int {
 	count := 0
 	lengths := map[int]int{
 		2: 1, // 1
@@ -133,7 +150,7 @@ func countUniqueReprInOutput(displays <-chan *DisplayState) int {
 		4: 1, // 4
 		7: 1, // 8
 	}
-	for display := range displays {
+	for display := range p.displays {
 		for _, digit := range display.output {
 			count += lengths[bits.OnesCount8(digit)]
 		}
@@ -141,22 +158,10 @@ func countUniqueReprInOutput(displays <-chan *DisplayState) int {
 	return count
 }
 
-func sumOutput(displays <-chan *DisplayState) int {
+func (p *Puzzle) sumOutput() int {
 	s := 0
-	for display := range displays {
+	for display := range p.displays {
 		s += display.Decode()
 	}
 	return s
-}
-
-var partMap = map[string]func(<-chan *DisplayState) int{
-	"1": countUniqueReprInOutput,
-	"2": sumOutput,
-}
-
-func Day08(part string, input *bufio.Scanner) (string, error) {
-	displays := make(chan *DisplayState)
-	go parseInput(input, displays)
-	result := partMap[part](displays)
-	return fmt.Sprintf("%d", result), nil
 }

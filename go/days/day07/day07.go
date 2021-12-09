@@ -1,10 +1,10 @@
 package day07
 
 import (
+	"aoc-2021/framework"
 	"aoc-2021/util/input"
 	"aoc-2021/util/math/integer"
 	"bufio"
-	"fmt"
 	"math"
 )
 
@@ -17,13 +17,30 @@ func sumBelowCost(position int, target int) int {
 	return ((2 * steps) * (steps + 1)) / 4
 }
 
-func costScan(positions []int, costFunc func(int, int) int) int {
-	min := integer.MinSlice(positions)
-	max := integer.MaxSlice(positions)
+type Puzzle struct {
+	framework.PuzzleBase
+	positions []int
+}
+
+func (p *Puzzle) Init() {
+	p.Parts = map[string]func() int{
+		"1": func() int { return p.CostScan(constantCost) },
+		"2": func() int { return p.CostScan(sumBelowCost) },
+	}
+}
+
+func (p *Puzzle) Parse(scanner *bufio.Scanner) {
+	scanner.Scan()
+	p.positions = input.SplitInts(scanner.Text(), ",")
+}
+
+func (p *Puzzle) CostScan(costFunc func(int, int) int) int {
+	min := integer.MinSlice(p.positions)
+	max := integer.MaxSlice(p.positions)
 	best := math.MaxInt
 	for t := min; t <= max; t++ {
 		cost := 0
-		for _, v := range positions {
+		for _, v := range p.positions {
 			cost += costFunc(v, t)
 		}
 		if cost < best {
@@ -31,20 +48,4 @@ func costScan(positions []int, costFunc func(int, int) int) int {
 		}
 	}
 	return best
-}
-
-func parseInput(scanner *bufio.Scanner) []int {
-	scanner.Scan()
-	return input.SplitInts(scanner.Text(), ",")
-}
-
-var partMap = map[string]func(positions []int) int{
-	"1": func(p []int) int { return costScan(p, constantCost) },
-	"2": func(p []int) int { return costScan(p, sumBelowCost) },
-}
-
-func Day07(part string, input *bufio.Scanner) (string, error) {
-	positions := parseInput(input)
-	result := partMap[part](positions)
-	return fmt.Sprintf("%d", result), nil
 }
