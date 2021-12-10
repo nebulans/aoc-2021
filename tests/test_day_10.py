@@ -38,4 +38,4 @@ class TestPart2(object):
         assert solution.run_lines(OFFICIAL_EXAMPLE) == '288957'
 
     def test_actual_input(self, solution):
-        assert solution.run_file(ACTUAL_INPUT) == ''
+        assert solution.run_file(ACTUAL_INPUT) == '4263222782'

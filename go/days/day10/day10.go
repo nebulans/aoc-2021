@@ -64,14 +64,17 @@ func (s *ParserStack) Remaining() []rune {
 }
 
 type SyntaxLine struct {
-	characters []rune
+	characters  []rune
+	corrupt     bool
+	corruptChar rune
+	completion  []rune
 }
 
 func (s *SyntaxLine) Format() string {
 	return fmt.Sprintf("%v", s.characters)
 }
 
-func (s *SyntaxLine) Corrupt() (bool, rune) {
+func (s *SyntaxLine) Process() {
 	stack := &ParserStack{make([]rune, len(s.characters)), 0}
 	for _, c := range s.characters {
 		closing, found := chunkClosings[c]
@@ -80,27 +83,13 @@ func (s *SyntaxLine) Corrupt() (bool, rune) {
 		} else {
 			expected, _ := stack.Pop()
 			if c != expected {
-				return true, c
+				s.corrupt = true
+				s.corruptChar = c
+				return
 			}
 		}
 	}
-	return false, ' '
-}
-
-func (s *SyntaxLine) Closing() []rune {
-	stack := &ParserStack{make([]rune, len(s.characters)), 0}
-	for _, c := range s.characters {
-		closing, found := chunkClosings[c]
-		if found {
-			stack.Push(closing)
-		} else {
-			_, err := stack.Pop()
-			if err != nil {
-				return nil
-			}
-		}
-	}
-	return stack.Remaining()
+	s.completion = stack.Remaining()
 }
 
 func MakeLine(text string) *SyntaxLine {
@@ -108,7 +97,12 @@ func MakeLine(text string) *SyntaxLine {
 	for i, c := range text {
 		chars[i] = c
 	}
-	return &SyntaxLine{chars}
+	return &SyntaxLine{
+		chars,
+		false,
+		' ',
+		nil,
+	}
 }
 
 type Puzzle struct {
@@ -139,9 +133,9 @@ func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 func (p *Puzzle) corruptScores() int {
 	score := 0
 	for line := range p.lines {
-		corrupt, char := line.Corrupt()
-		if corrupt {
-			score += corruptScores[char]
+		line.Process()
+		if line.corrupt {
+			score += corruptScores[line.corruptChar]
 		}
 	}
 	return score
@@ -150,11 +144,10 @@ func (p *Puzzle) corruptScores() int {
 func (p *Puzzle) incompleteScores() int {
 	scores := make([]int, 0)
 	for line := range p.lines {
-		corrupt, _ := line.Corrupt()
-		if !corrupt {
-			completion := line.Closing()
+		line.Process()
+		if !line.corrupt {
 			score := 0
-			for _, c := range completion {
+			for _, c := range line.completion {
 				score *= 5
 				score += completionScores[c]
 			}
