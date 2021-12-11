@@ -18,6 +18,10 @@ func (g *IntGrid) Positions() []vector.Vec2 {
 	return g.Backend.Positions()
 }
 
+func (g *IntGrid) FilledPositions() []vector.Vec2 {
+	return g.Backend.FilledPositions()
+}
+
 func (g *IntGrid) Length() int {
 	return g.Backend.Length()
 }

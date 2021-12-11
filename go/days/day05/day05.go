@@ -2,80 +2,13 @@ package day05
 
 import (
 	"aoc-2021/framework"
+	"aoc-2021/util/math/grid2d"
 	"aoc-2021/util/math/vector"
 	"bufio"
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 )
-
-type Field struct {
-	positions map[vector.Vec2]int
-	extents   vector.Vec2
-	max       int
-}
-
-func NewField() *Field {
-	return &Field{
-		positions: make(map[vector.Vec2]int),
-		extents:   vector.Vec2{X: 0, Y: 0},
-	}
-}
-
-func (f *Field) AddPoint(position vector.Vec2) int {
-	f.positions[position]++
-	if position.X >= f.extents.X {
-		f.extents.X = position.X + 1
-	}
-	if position.Y >= f.extents.Y {
-		f.extents.Y = position.Y + 1
-	}
-	newValue := f.positions[position]
-	if f.max < newValue {
-		f.max = newValue
-	}
-	return newValue
-}
-
-func (f *Field) Values() []int {
-	values := make([]int, f.extents.X*f.extents.Y)
-	position := 0
-	for y := 0; y < f.extents.Y; y++ {
-		for x := 0; x < f.extents.X; x++ {
-			values[position] = f.positions[vector.Vec2{X: x, Y: y}]
-			position++
-		}
-	}
-	return values
-}
-
-func (f *Field) FilledValues() []int {
-	values := make([]int, len(f.positions))
-	i := 0
-	for _, v := range f.positions {
-		values[i] = v
-		i++
-	}
-	return values
-}
-
-func (f *Field) Format() string {
-	values := f.Values()
-	cells := make([]string, len(values))
-	for i, v := range values {
-		sep := ""
-		if i%f.extents.X == f.extents.X-1 {
-			sep = "\n"
-		}
-		if v == 0 {
-			cells[i] = fmt.Sprintf(".%s", sep)
-		} else {
-			cells[i] = fmt.Sprintf("%X%s", v, sep)
-		}
-	}
-	return strings.Join(cells, "")
-}
 
 type Puzzle struct {
 	framework.PuzzleBase
@@ -109,7 +42,7 @@ func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 }
 
 func (p *Puzzle) countMultiples(onlyAxisAligned bool) int {
-	field := NewField()
+	field := &grid2d.IntGrid{Backend: grid2d.MakeMapGrid(0)}
 	for line := range p.lines {
 		if onlyAxisAligned {
 			if line.Direction.X != 0 && line.Direction.Y != 0 {
@@ -117,17 +50,15 @@ func (p *Puzzle) countMultiples(onlyAxisAligned bool) int {
 			}
 		}
 		for _, point := range line.Points() {
-			field.AddPoint(point)
+			field.Set(point, field.Get(point)+1)
 		}
 	}
 	multiples := 0
-	for _, v := range field.FilledValues() {
-		if v > 1 {
+	for _, p := range field.FilledPositions() {
+		if field.Get(p) > 1 {
 			multiples++
 		}
 	}
-	//fmt.Println(field.Format())
-	fmt.Printf("Higest count: %d\n", field.max)
-	fmt.Printf("Field size: %dx%d\n", field.extents.X, field.extents.Y)
+	fmt.Printf("Field size: %dx%d\n", field.Extents().X, field.Extents().Y)
 	return multiples
 }

@@ -46,6 +46,10 @@ func (g *ArrayGrid) Positions() []vector.Vec2 {
 	return pos
 }
 
+func (g *ArrayGrid) FilledPositions() []vector.Vec2 {
+	return g.Positions()
+}
+
 var axisNeighbours = [4]vector.Vec2{
 	{1, 0},
 	{0, 1},
