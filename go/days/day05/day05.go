@@ -60,6 +60,6 @@ func (p *Puzzle) countMultiples(onlyAxisAligned bool) int {
 		}
 	}
 	fmt.Printf("Field size: %dx%d\n", field.Extents().X, field.Extents().Y)
-	fmt.Println(field.Format(field.SparseFormatter))
+	//fmt.Println(field.Format(field.SparseFormatter))
 	return multiples
 }

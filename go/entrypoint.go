@@ -21,17 +21,18 @@ import (
 )
 
 var dayStructs = map[string]framework.Puzzle{
-	"1":  &day01.Puzzle{},
-	"2":  &day02.Puzzle{},
-	"3":  &day03.Puzzle{},
-	"4":  &day04.Puzzle{},
-	"5":  &day05.Puzzle{},
-	"6":  &day06.Puzzle{},
-	"7":  &day07.Puzzle{},
-	"8":  &day08.Puzzle{},
-	"9":  &day09.Puzzle{},
-	"10": &day10.Puzzle{},
-	"11": &day11.Puzzle{},
+	"1":   &day01.Puzzle{},
+	"2":   &day02.Puzzle{},
+	"3":   &day03.Puzzle{},
+	"4":   &day04.Puzzle{},
+	"5":   &day05.Puzzle{},
+	"6":   &day06.Puzzle{},
+	"7":   &day07.Puzzle{},
+	"8":   &day08.Puzzle{},
+	"9":   &day09.Puzzle{},
+	"10":  &day10.Puzzle{},
+	"11":  &day11.Puzzle{GridImpl: "array"},
+	"11m": &day11.Puzzle{GridImpl: "map"},
 }
 
 var CLI struct {

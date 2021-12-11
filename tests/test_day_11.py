@@ -19,6 +19,7 @@ ACTUAL_INPUT = 'input/day_11.txt'
 
 @pytest.mark.parametrize('solution', [
     GoSolution(11, 1),
+    GoSolution("11m", 1),
 ], ids=lambda s: s.name)
 class TestPart1(object):
 
@@ -31,6 +32,7 @@ class TestPart1(object):
 
 @pytest.mark.parametrize('solution', [
     GoSolution(11, 2),
+    GoSolution("11m", 2),
 ], ids=lambda s: s.name)
 class TestPart2(object):
 

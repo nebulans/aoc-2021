@@ -11,11 +11,17 @@ import (
 
 type Puzzle struct {
 	framework.PuzzleBase
-	grid *grid2d.IntGrid
+	grid     *grid2d.IntGrid
+	GridImpl string
 }
 
 func (p *Puzzle) Init() {
-	p.grid = grid2d.MakeIntGrid(grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10}))
+	switch p.GridImpl {
+	case "array":
+		p.grid = grid2d.MakeIntGrid(grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10}))
+	case "map":
+		p.grid = grid2d.MakeIntGrid(grid2d.MakeMapGridExtents(0, vector.Vec2{X: 10, Y: 10}))
+	}
 	p.Parts = map[string]func() int{
 		"1": p.countFlashes,
 		"2": p.synchronisedFlash,

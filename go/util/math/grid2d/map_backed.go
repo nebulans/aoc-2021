@@ -43,3 +43,11 @@ func MakeMapGrid(defaultValue interface{}) *MapGrid {
 		defaultValue: defaultValue,
 	}
 }
+
+func MakeMapGridExtents(defaultValue interface{}, extents vector.Vec2) *MapGrid {
+	return &MapGrid{
+		values:       map[vector.Vec2]interface{}{},
+		GridGeometry: GridGeometry{extents},
+		defaultValue: defaultValue,
+	}
+}
