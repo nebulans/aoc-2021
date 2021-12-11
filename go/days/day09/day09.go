@@ -33,7 +33,7 @@ func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 		x = len(vals)
 		y++
 	}
-	p.heights = &grid2d.IntGrid{Backend: grid2d.MakeArrayGrid(vector.Vec2{X: x, Y: y})}
+	p.heights = grid2d.MakeIntGrid(grid2d.MakeArrayGrid(vector.Vec2{X: x, Y: y}))
 	for i, pos := range p.heights.Positions() {
 		p.heights.Set(pos, all[i])
 	}

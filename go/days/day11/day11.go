@@ -6,8 +6,6 @@ import (
 	"aoc-2021/util/math/grid2d"
 	"aoc-2021/util/math/vector"
 	"bufio"
-	"fmt"
-	"strings"
 )
 
 type Puzzle struct {
@@ -15,21 +13,21 @@ type Puzzle struct {
 	grid *grid2d.IntGrid
 }
 
-func (p *Puzzle) FormatGrid() string {
-	elems := make([]string, p.grid.Length())
-	for i, pos := range p.grid.Positions() {
-		val := p.grid.Get(pos)
-		if pos.X == p.grid.Backend.Extents().X-1 {
-			elems[i] = fmt.Sprintf("%d\n", val)
-		} else {
-			elems[i] = fmt.Sprintf("%d", val)
-		}
-	}
-	return strings.Join(elems, "")
-}
+//func (p *Puzzle) FormatGrid() string {
+//	elems := make([]string, p.grid.Length())
+//	for i, pos := range p.grid.Positions() {
+//		val := p.grid.Get(pos)
+//		if pos.X == p.grid.backend.Extents().X-1 {
+//			elems[i] = fmt.Sprintf("%d\n", val)
+//		} else {
+//			elems[i] = fmt.Sprintf("%d", val)
+//		}
+//	}
+//	return strings.Join(elems, "")
+//}
 
 func (p *Puzzle) Init() {
-	p.grid = &grid2d.IntGrid{Backend: grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10})}
+	p.grid = grid2d.MakeIntGrid(grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10}))
 	p.Parts = map[string]func() int{
 		"1": p.countFlashes,
 		"2": p.synchronisedFlash,

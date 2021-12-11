@@ -42,7 +42,7 @@ func (p *Puzzle) asyncParse(scanner *bufio.Scanner) {
 }
 
 func (p *Puzzle) countMultiples(onlyAxisAligned bool) int {
-	field := &grid2d.IntGrid{Backend: grid2d.MakeMapGrid(0)}
+	field := grid2d.MakeIntGrid(grid2d.MakeMapGrid(0))
 	for line := range p.lines {
 		if onlyAxisAligned {
 			if line.Direction.X != 0 && line.Direction.Y != 0 {
