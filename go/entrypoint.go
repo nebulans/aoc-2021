@@ -11,6 +11,7 @@ import (
 	"aoc-2021/days/day08"
 	"aoc-2021/days/day09"
 	"aoc-2021/days/day10"
+	"aoc-2021/days/day11"
 	"aoc-2021/framework"
 	"bufio"
 	"fmt"
@@ -30,6 +31,7 @@ var dayStructs = map[string]framework.Puzzle{
 	"8":  &day08.Puzzle{},
 	"9":  &day09.Puzzle{},
 	"10": &day10.Puzzle{},
+	"11": &day11.Puzzle{},
 }
 
 var CLI struct {
