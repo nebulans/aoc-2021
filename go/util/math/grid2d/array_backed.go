@@ -9,6 +9,10 @@ type ArrayGrid struct {
 	Extents vector.Vec2
 }
 
+func (g *ArrayGrid) Length() int {
+	return g.Extents.X * g.Extents.Y
+}
+
 func (g *ArrayGrid) Get(position vector.Vec2) interface{} {
 	i := position.X + position.Y*g.Extents.X
 	return g.values[i]

@@ -21,7 +21,7 @@ type Puzzle struct {
 }
 
 func (p *Puzzle) FormatGrid() string {
-	elems := make([]string, p.grid.Extents.X*p.grid.Extents.Y)
+	elems := make([]string, p.grid.Length())
 	for i, pos := range p.grid.Positions() {
 		val := p.grid.Get(pos).(*Octopus).energy
 		if pos.X == p.grid.Extents.X-1 {
@@ -42,7 +42,7 @@ func (p *Puzzle) Init() {
 }
 
 func (p *Puzzle) Parse(scanner *bufio.Scanner) {
-	values := make([]int, 0, p.grid.Extents.X*p.grid.Extents.Y)
+	values := make([]int, 0, p.grid.Length())
 	for scanner.Scan() {
 		line := scanner.Text()
 		ints := input.SplitInts(line, "")
