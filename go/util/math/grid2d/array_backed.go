@@ -6,35 +6,39 @@ import (
 
 type ArrayGrid struct {
 	values  []interface{}
-	Extents vector.Vec2
+	extents vector.Vec2
 }
 
 func (g *ArrayGrid) Length() int {
-	return g.Extents.X * g.Extents.Y
+	return g.extents.X * g.extents.Y
+}
+
+func (g *ArrayGrid) Extents() vector.Vec2 {
+	return g.extents
 }
 
 func (g *ArrayGrid) Get(position vector.Vec2) interface{} {
-	i := position.X + position.Y*g.Extents.X
+	i := position.X + position.Y*g.extents.X
 	return g.values[i]
 }
 
 func (g *ArrayGrid) Set(position vector.Vec2, value interface{}) {
-	i := position.X + position.Y*g.Extents.X
+	i := position.X + position.Y*g.extents.X
 	g.values[i] = value
 }
 
 func (g *ArrayGrid) ContainsPoint(position vector.Vec2) bool {
-	if position.X < 0 || position.Y < 0 || position.X >= g.Extents.X || position.Y >= g.Extents.Y {
+	if position.X < 0 || position.Y < 0 || position.X >= g.extents.X || position.Y >= g.extents.Y {
 		return false
 	}
 	return true
 }
 
 func (g *ArrayGrid) Positions() []vector.Vec2 {
-	pos := make([]vector.Vec2, g.Extents.X*g.Extents.Y)
+	pos := make([]vector.Vec2, g.extents.X*g.extents.Y)
 	i := 0
-	for y := 0; y < g.Extents.Y; y++ {
-		for x := 0; x < g.Extents.X; x++ {
+	for y := 0; y < g.extents.Y; y++ {
+		for x := 0; x < g.extents.X; x++ {
 			pos[i] = vector.Vec2{X: x, Y: y}
 			i++
 		}
@@ -74,6 +78,6 @@ func (g *ArrayGrid) Neighbours(point vector.Vec2, includeDiagonal bool) []vector
 func MakeArrayGrid(extents vector.Vec2) *ArrayGrid {
 	return &ArrayGrid{
 		values:  make([]interface{}, extents.X*extents.Y),
-		Extents: extents,
+		extents: extents,
 	}
 }

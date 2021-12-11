@@ -10,21 +10,16 @@ import (
 	"strings"
 )
 
-type Octopus struct {
-	energy     int
-	flashCount int
-}
-
 type Puzzle struct {
 	framework.PuzzleBase
-	grid *grid2d.ArrayGrid
+	grid *grid2d.IntGrid
 }
 
 func (p *Puzzle) FormatGrid() string {
 	elems := make([]string, p.grid.Length())
 	for i, pos := range p.grid.Positions() {
-		val := p.grid.Get(pos).(*Octopus).energy
-		if pos.X == p.grid.Extents.X-1 {
+		val := p.grid.Get(pos)
+		if pos.X == p.grid.Backend.Extents().X-1 {
 			elems[i] = fmt.Sprintf("%d\n", val)
 		} else {
 			elems[i] = fmt.Sprintf("%d", val)
@@ -34,7 +29,7 @@ func (p *Puzzle) FormatGrid() string {
 }
 
 func (p *Puzzle) Init() {
-	p.grid = grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10})
+	p.grid = &grid2d.IntGrid{Backend: grid2d.MakeArrayGrid(vector.Vec2{X: 10, Y: 10})}
 	p.Parts = map[string]func() int{
 		"1": p.countFlashes,
 		"2": p.synchronisedFlash,
@@ -49,14 +44,15 @@ func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 		values = append(values, ints[:]...)
 	}
 	for i, pos := range p.grid.Positions() {
-		p.grid.Set(pos, &Octopus{energy: values[i], flashCount: 0})
+		p.grid.Set(pos, values[i])
 	}
 }
 
 func (p *Puzzle) incrementPoint(pos vector.Vec2) {
-	o := p.grid.Get(pos).(*Octopus)
-	o.energy++
-	if o.energy == 10 {
+	o := p.grid.Get(pos)
+	o++
+	p.grid.Set(pos, o)
+	if o == 10 {
 		for _, n := range p.grid.Neighbours(pos, true) {
 			p.incrementPoint(n)
 		}
@@ -71,10 +67,9 @@ func (p *Puzzle) simulateStep() int {
 	// Reset all flashing
 	flashes := 0
 	for _, pos := range p.grid.Positions() {
-		o := p.grid.Get(pos).(*Octopus)
-		if o.energy > 9 {
-			o.flashCount++
-			o.energy = 0
+		o := p.grid.Get(pos)
+		if o > 9 {
+			p.grid.Set(pos, 0)
 			flashes++
 		}
 	}
