@@ -2,6 +2,7 @@ package day12
 
 import (
 	"aoc-2021/framework"
+	"aoc-2021/util/datastructure/stack"
 	"bufio"
 	"strings"
 )
@@ -34,33 +35,6 @@ func (p *Path) Format() string {
 	return strings.Join(p.nodes, " -> ")
 }
 
-type PathStack struct {
-	paths    []Path
-	position int
-}
-
-func (s *PathStack) Push(path Path) {
-	if len(s.paths) <= s.position {
-		s.paths = append(s.paths, path)
-	} else {
-		s.paths[s.position] = path
-	}
-	s.position++
-}
-
-func (s *PathStack) Pop() Path {
-	s.position--
-	return s.paths[s.position]
-}
-
-func (s *PathStack) isEmpty() bool {
-	return s.position < 1
-}
-
-func MakePathStack() *PathStack {
-	return &PathStack{paths: []Path{}, position: 0}
-}
-
 type Graph struct {
 	connections map[string][]string
 	acceptFn    func(*Path, string) bool
@@ -73,10 +47,10 @@ func (g *Graph) connect(conn Connection) {
 
 func (g *Graph) explore() []Path {
 	complete := make([]Path, 0)
-	stack := MakePathStack()
-	stack.Push(Path{nodes: []string{"start"}})
-	for !stack.isEmpty() {
-		path := stack.Pop()
+	pathStack := stack.MakeStack(0)
+	pathStack.Push(Path{nodes: []string{"start"}})
+	for !pathStack.IsEmpty() {
+		path := pathStack.Pop().(Path)
 		possibles := g.connections[path.Last()]
 		for _, poss := range possibles {
 			if g.acceptFn(&path, poss) {
@@ -84,7 +58,7 @@ func (g *Graph) explore() []Path {
 				if n.isComplete() {
 					complete = append(complete, n)
 				} else {
-					stack.Push(n)
+					pathStack.Push(n)
 				}
 			}
 		}

@@ -2,8 +2,8 @@ package day10
 
 import (
 	"aoc-2021/framework"
+	stack2 "aoc-2021/util/datastructure/stack"
 	"bufio"
-	"errors"
 	"fmt"
 	"sort"
 )
@@ -29,40 +29,6 @@ var completionScores = map[rune]int{
 	'>': 4,
 }
 
-type ParserStack struct {
-	characters []rune
-	position   int
-}
-
-func (s *ParserStack) Push(val rune) {
-	s.characters[s.position] = val
-	s.position++
-}
-
-func (s *ParserStack) Pop() (rune, error) {
-	if s.position < 1 {
-		return ' ', errors.New("empty stack")
-	}
-	s.position--
-	return s.characters[s.position], nil
-}
-
-func (s *ParserStack) Remaining() []rune {
-	r := make([]rune, s.position)
-	ended := false
-	i := 0
-	for ended == false {
-		val, err := s.Pop()
-		if err != nil {
-			ended = true
-		} else {
-			r[i] = val
-			i++
-		}
-	}
-	return r
-}
-
 type SyntaxLine struct {
 	characters  []rune
 	corrupt     bool
@@ -75,13 +41,13 @@ func (s *SyntaxLine) Format() string {
 }
 
 func (s *SyntaxLine) Process() {
-	stack := &ParserStack{make([]rune, len(s.characters)), 0}
+	stack := stack2.MakeStack(len(s.characters))
 	for _, c := range s.characters {
 		closing, found := chunkClosings[c]
 		if found {
 			stack.Push(closing)
 		} else {
-			expected, _ := stack.Pop()
+			expected := stack.Pop().(rune)
 			if c != expected {
 				s.corrupt = true
 				s.corruptChar = c
@@ -89,7 +55,11 @@ func (s *SyntaxLine) Process() {
 			}
 		}
 	}
-	s.completion = stack.Remaining()
+	r := stack.Remaining()
+	s.completion = make([]rune, len(r))
+	for i, v := range r {
+		s.completion[i] = v.(rune)
+	}
 }
 
 func MakeLine(text string) *SyntaxLine {
