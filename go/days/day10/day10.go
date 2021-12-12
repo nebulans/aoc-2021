@@ -2,7 +2,7 @@ package day10
 
 import (
 	"aoc-2021/framework"
-	stack2 "aoc-2021/util/datastructure/stack"
+	"aoc-2021/util/datastructure/stack"
 	"bufio"
 	"fmt"
 	"sort"
@@ -41,13 +41,13 @@ func (s *SyntaxLine) Format() string {
 }
 
 func (s *SyntaxLine) Process() {
-	stack := stack2.MakeStack(len(s.characters))
+	tokenStack := stack.MakeStack(len(s.characters))
 	for _, c := range s.characters {
 		closing, found := chunkClosings[c]
 		if found {
-			stack.Push(closing)
+			tokenStack.Push(closing)
 		} else {
-			expected := stack.Pop().(rune)
+			expected := tokenStack.Pop().(rune)
 			if c != expected {
 				s.corrupt = true
 				s.corruptChar = c
@@ -55,7 +55,7 @@ func (s *SyntaxLine) Process() {
 			}
 		}
 	}
-	r := stack.Remaining()
+	r := tokenStack.Remaining()
 	s.completion = make([]rune, len(r))
 	for i, v := range r {
 		s.completion[i] = v.(rune)
