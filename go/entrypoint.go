@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aoc-2021/day12"
 	"aoc-2021/days/day01"
 	"aoc-2021/days/day02"
 	"aoc-2021/days/day03"
@@ -13,6 +12,7 @@ import (
 	"aoc-2021/days/day09"
 	"aoc-2021/days/day10"
 	"aoc-2021/days/day11"
+	"aoc-2021/days/day12"
 	"aoc-2021/framework"
 	"bufio"
 	"fmt"
