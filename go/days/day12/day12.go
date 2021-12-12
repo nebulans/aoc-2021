@@ -30,33 +30,6 @@ func (p *Path) isComplete() bool {
 	return p.Last() == "end"
 }
 
-func (p *Path) willAccept(node string, smallRevisits int) bool {
-	if node == "start" {
-		return false
-	} // Always reject returning to start
-	if node == "end" {
-		return true
-	} // Always accept arriving at end
-	if strings.ToUpper(node) == node {
-		return true
-	}
-	revisitCount := map[string]int{}
-	revisitCount[node]++
-	for _, visited := range p.nodes {
-		if strings.ToLower(visited) == visited {
-			revisitCount[visited]++
-		}
-	}
-	totalRevisits := 0
-	for _, v := range revisitCount {
-		totalRevisits += v - 1
-	}
-	if totalRevisits > smallRevisits {
-		return false
-	}
-	return true
-}
-
 func (p *Path) Format() string {
 	return strings.Join(p.nodes, " -> ")
 }
@@ -90,6 +63,7 @@ func MakePathStack() *PathStack {
 
 type Graph struct {
 	connections map[string][]string
+	acceptFn    func(*Path, string) bool
 }
 
 func (g *Graph) connect(conn Connection) {
@@ -97,7 +71,7 @@ func (g *Graph) connect(conn Connection) {
 	g.connections[conn.to] = append(g.connections[conn.to], conn.from)
 }
 
-func (g *Graph) explore(smallRevisits int) []Path {
+func (g *Graph) explore() []Path {
 	complete := make([]Path, 0)
 	stack := MakePathStack()
 	stack.Push(Path{nodes: []string{"start"}})
@@ -105,7 +79,7 @@ func (g *Graph) explore(smallRevisits int) []Path {
 		path := stack.Pop()
 		possibles := g.connections[path.Last()]
 		for _, poss := range possibles {
-			if path.willAccept(poss, smallRevisits) {
+			if g.acceptFn(&path, poss) {
 				n := path.add(poss)
 				if n.isComplete() {
 					complete = append(complete, n)
@@ -124,6 +98,51 @@ func MakeGraph() *Graph {
 	}
 }
 
+func NoRevisits(path *Path, node string) bool {
+	if node == "start" {
+		return false
+	} // Always reject returning to start
+	if node == "end" {
+		return true
+	} // Always accept arriving at end
+	if strings.ToUpper(node) == node {
+		return true
+	}
+	for _, n := range path.nodes {
+		if n == node {
+			return false
+		}
+	}
+	return true
+}
+
+func SingleRevisit(path *Path, node string) bool {
+	if node == "start" {
+		return false
+	} // Always reject returning to start
+	if node == "end" {
+		return true
+	} // Always accept arriving at end
+	if strings.ToUpper(node) == node {
+		return true
+	}
+	revisited := false
+	visitCounts := map[string]int{node: 1}
+	for _, visited := range path.nodes {
+		if strings.ToLower(visited) == visited {
+			prev := visitCounts[visited]
+			if prev > 0 {
+				if revisited {
+					return false
+				}
+				revisited = true
+			}
+			visitCounts[visited] = prev + 1
+		}
+	}
+	return true
+}
+
 type Puzzle struct {
 	framework.PuzzleBase
 	connections []Connection
@@ -132,8 +151,8 @@ type Puzzle struct {
 func (p *Puzzle) Init() {
 	p.connections = make([]Connection, 0)
 	p.Parts = map[string]func() int{
-		"1": func() int { return p.countPaths(0) },
-		"2": func() int { return p.countPaths(1) },
+		"1": func() int { return p.countPaths(NoRevisits) },
+		"2": func() int { return p.countPaths(SingleRevisit) },
 	}
 }
 
@@ -145,11 +164,12 @@ func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 	}
 }
 
-func (p *Puzzle) countPaths(smallRevisits int) int {
+func (p *Puzzle) countPaths(acceptFn func(*Path, string) bool) int {
 	g := MakeGraph()
+	g.acceptFn = acceptFn
 	for _, conn := range p.connections {
 		g.connect(conn)
 	}
-	paths := g.explore(smallRevisits)
+	paths := g.explore()
 	return len(paths)
 }
