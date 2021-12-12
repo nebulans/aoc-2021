@@ -17,6 +17,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/alecthomas/kong"
+	"log"
 	"os"
 	"time"
 )
@@ -39,6 +40,7 @@ var dayStructs = map[string]framework.Puzzle{
 
 var CLI struct {
 	Debug bool
+	Input string
 	Day   string `arg:"" help:"Day to solve"`
 	Part  string `arg:"" help:"Part to solve"`
 }
@@ -56,8 +58,19 @@ func main() {
 	startTime := time.Now()
 	var result string
 	var err error
+	var f *os.File
+	if CLI.Input != "" {
+		h, err := os.Open(CLI.Input)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer h.Close()
+		f = h
+	} else {
+		f = os.Stdin
+	}
 	if structFound {
-		result, err = framework.RunPuzzle(dayStruct, CLI.Part, bufio.NewScanner(os.Stdin))
+		result, err = framework.RunPuzzle(dayStruct, CLI.Part, bufio.NewScanner(f))
 	}
 	if err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "Error reported by day function: %v", err)
