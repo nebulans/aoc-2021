@@ -18,11 +18,11 @@ func (g *MapGrid) Get(position vector.Vec2) interface{} {
 
 func (g *MapGrid) Set(position vector.Vec2, value interface{}) {
 	g.values[position] = value
-	if position.X > g.extents.X {
-		g.extents.X = position.X
+	if position.X >= g.extents.X {
+		g.extents.X = position.X + 1
 	}
-	if position.Y > g.extents.Y {
-		g.extents.Y = position.Y
+	if position.Y >= g.extents.Y {
+		g.extents.Y = position.Y + 1
 	}
 }
 

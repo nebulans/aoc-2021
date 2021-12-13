@@ -10,6 +10,8 @@ type GridBackend interface {
 	Length() int
 	Neighbours(position vector.Vec2, includeDiagonals bool) []vector.Vec2
 	Extents() vector.Vec2
+	SetExtents(vector.Vec2)
+	ContainsPoint(vector.Vec2) bool
 }
 
 type GridGeometry struct {
@@ -22,6 +24,10 @@ func (g *GridGeometry) Length() int {
 
 func (g *GridGeometry) Extents() vector.Vec2 {
 	return g.extents
+}
+
+func (g *GridGeometry) SetExtents(e vector.Vec2) {
+	g.extents = e
 }
 
 func (g *GridGeometry) ContainsPoint(position vector.Vec2) bool {
