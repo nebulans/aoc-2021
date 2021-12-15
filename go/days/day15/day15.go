@@ -7,24 +7,35 @@ import (
 	"aoc-2021/util/math/integer"
 	"aoc-2021/util/math/vector"
 	"bufio"
+	"fmt"
 )
 
 type BestCostGrid struct {
-	cellCosts       *grid2d.IntGrid
-	cumulativeCosts *grid2d.IntGrid
+	cellCosts        *grid2d.IntGrid
+	cumulativeCosts  *grid2d.IntGrid
+	totalComparisons int
+}
+
+func (g *BestCostGrid) calculatePosition(point vector.Vec2) bool {
+	neighbours := g.cellCosts.Neighbours(point, false)
+	costs := make([]int, len(neighbours))
+	for i, n := range neighbours {
+		g.totalComparisons++
+		costs[i] = g.cumulativeCosts.Get(n) + g.cellCosts.Get(point)
+	}
+	best := integer.MinSlice(costs)
+	if best < g.cumulativeCosts.Get(point) {
+		g.cumulativeCosts.Set(point, best)
+		return true
+	}
+	return false
 }
 
 func (g *BestCostGrid) recalculate() int {
 	changes := 0
 	for _, point := range g.cellCosts.Positions() {
-		neighbours := g.cellCosts.Neighbours(point, false)
-		costs := make([]int, len(neighbours))
-		for i, n := range neighbours {
-			costs[i] = g.cumulativeCosts.Get(n) + g.cellCosts.Get(point)
-		}
-		best := integer.MinSlice(costs)
-		if best < g.cumulativeCosts.Get(point) {
-			g.cumulativeCosts.Set(point, best)
+		changed := g.calculatePosition(point)
+		if changed {
 			changes++
 		}
 	}
@@ -32,11 +43,15 @@ func (g *BestCostGrid) recalculate() int {
 }
 
 func (g *BestCostGrid) solve() int {
+	iterations := 0
 	changes := 1
 	for changes > 0 {
+		iterations++
 		changes = g.recalculate()
 	}
 	corner := vector.Vec2{X: g.cumulativeCosts.Extents().X - 1, Y: g.cumulativeCosts.Extents().Y - 1}
+	fmt.Printf("%d recalculation iterations\n", iterations)
+	fmt.Printf("%d comparisons\n", g.totalComparisons)
 	return g.cumulativeCosts.Get(corner)
 }
 
