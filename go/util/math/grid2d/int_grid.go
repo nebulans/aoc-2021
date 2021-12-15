@@ -11,7 +11,11 @@ type IntGrid struct {
 }
 
 func (g *IntGrid) Get(position vector.Vec2) int {
-	return g.GridBackend.Get(position).(int)
+	v := g.GridBackend.Get(position)
+	if v == nil {
+		return 0
+	}
+	return v.(int)
 }
 
 func (g *IntGrid) Set(position vector.Vec2, value int) {
@@ -45,6 +49,10 @@ func (g *IntGrid) SparseFormatter(val int) string {
 		return " "
 	}
 	return fmt.Sprintf("%d", val)
+}
+
+func (g *IntGrid) PaddedFormatter(val int) string {
+	return fmt.Sprintf("%3d ", val)
 }
 
 func MakeIntGrid(backend GridBackend) *IntGrid {
