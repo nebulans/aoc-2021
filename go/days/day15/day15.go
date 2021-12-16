@@ -24,7 +24,7 @@ func (g *BestCostGrid) calculatePosition(point vector.Vec2) bool {
 		costs[i] = g.cumulativeCosts.Get(n) + g.cellCosts.Get(point)
 	}
 	best := integer.MinSlice(costs)
-	if best < g.cumulativeCosts.Get(point) {
+	if best < g.cumulativeCosts.Get(point) && best < g.cornerValue() {
 		g.cumulativeCosts.Set(point, best)
 		return true
 	}
@@ -42,6 +42,11 @@ func (g *BestCostGrid) recalculate() int {
 	return changes
 }
 
+func (g *BestCostGrid) cornerValue() int {
+	corner := vector.Vec2{X: g.cumulativeCosts.Extents().X - 1, Y: g.cumulativeCosts.Extents().Y - 1}
+	return g.cumulativeCosts.Get(corner)
+}
+
 func (g *BestCostGrid) solve() int {
 	iterations := 0
 	changes := 1
@@ -49,10 +54,9 @@ func (g *BestCostGrid) solve() int {
 		iterations++
 		changes = g.recalculate()
 	}
-	corner := vector.Vec2{X: g.cumulativeCosts.Extents().X - 1, Y: g.cumulativeCosts.Extents().Y - 1}
 	fmt.Printf("%d recalculation iterations\n", iterations)
 	fmt.Printf("%d comparisons\n", g.totalComparisons)
-	return g.cumulativeCosts.Get(corner)
+	return g.cornerValue()
 }
 
 func MakeBestCostGrid(costs *grid2d.IntGrid) *BestCostGrid {

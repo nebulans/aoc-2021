@@ -54,6 +54,14 @@ func Sum(a []int) int {
 	return s
 }
 
+func Product(a []int) int {
+	p := 1
+	for _, v := range a {
+		p *= v
+	}
+	return p
+}
+
 func SumUint64(a []uint64) uint64 {
 	s := uint64(0)
 	for _, v := range a {
