@@ -42,7 +42,7 @@ var dayStructs = map[string]framework.Puzzle{
 	"12":  &day12.Puzzle{},
 	"13":  &day13.Puzzle{},
 	"14":  &day14.Puzzle{},
-	"15":  &day15.Puzzle{},
+	"15":  &day15.Puzzle{Impl: "gridCosts"},
 	"16":  &day16.Puzzle{},
 }
 

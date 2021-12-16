@@ -24,7 +24,7 @@ func (g *BestCostGrid) calculatePosition(point vector.Vec2) bool {
 		costs[i] = g.cumulativeCosts.Get(n) + g.cellCosts.Get(point)
 	}
 	best := integer.MinSlice(costs)
-	if best < g.cumulativeCosts.Get(point) && best < g.cornerValue() {
+	if best < g.cumulativeCosts.Get(point) {
 		g.cumulativeCosts.Set(point, best)
 		return true
 	}
@@ -71,9 +71,14 @@ func MakeBestCostGrid(costs *grid2d.IntGrid) *BestCostGrid {
 	return &BestCostGrid{cellCosts: costs, cumulativeCosts: cumulative}
 }
 
+var impls = map[string]func(*grid2d.IntGrid) int{
+	"gridCosts": func(g *grid2d.IntGrid) int { return MakeBestCostGrid(g).solve() },
+}
+
 type Puzzle struct {
 	framework.PuzzleBase
 	grid *grid2d.IntGrid
+	Impl string
 }
 
 func (p *Puzzle) Init() {
@@ -101,8 +106,7 @@ func (p *Puzzle) Parse(scanner *bufio.Scanner) {
 }
 
 func (p *Puzzle) lowestScore() int {
-	costs := MakeBestCostGrid(p.grid)
-	return costs.solve()
+	return impls[p.Impl](p.grid)
 }
 
 func (p *Puzzle) lowestScoreTiled() int {
@@ -119,6 +123,5 @@ func (p *Puzzle) lowestScoreTiled() int {
 		}
 		tiledCosts.Set(pos, value)
 	}
-	costs := MakeBestCostGrid(tiledCosts)
-	return costs.solve()
+	return impls[p.Impl](tiledCosts)
 }
