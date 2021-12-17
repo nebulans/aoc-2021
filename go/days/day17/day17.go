@@ -94,11 +94,18 @@ func (p *Puzzle) distinctSolutions() int {
 	maxYVelocity := -1 * (p.target.Min.Y + 1)
 	minYVelocity := p.target.Min.Y
 	maxXVelocity := p.target.Max.X
-	fmt.Printf("X range: 0, %d\n", maxXVelocity)
+	minXVelocity := 0
+	i := 0
+	s := 0
+	for i = 1; s <= p.target.Min.X; i++ {
+		s += i
+	}
+	minXVelocity = i - 1
+	fmt.Printf("X range: %d, %d\n", minXVelocity, maxXVelocity)
 	fmt.Printf("Y range: %d, %d\n", minYVelocity, maxYVelocity)
 	hits := 0
 	misses := 0
-	for x := 0; x <= maxXVelocity; x++ {
+	for x := minXVelocity; x <= maxXVelocity; x++ {
 		for y := minYVelocity; y <= maxYVelocity; y++ {
 			shot := Shot{
 				position: vector.Vec2{X: 0, Y: 0},
