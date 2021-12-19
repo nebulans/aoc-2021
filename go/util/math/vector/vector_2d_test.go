@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAdd(t *testing.T) {
+func TestVec2_Add(t *testing.T) {
 	var tests = []struct {
 		a, b Vec2
 		want Vec2

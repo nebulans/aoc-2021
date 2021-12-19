@@ -14,7 +14,7 @@ class Solution(abc.ABC):
 
     def run(self, input, **kwargs):
         command = self.get_command(**kwargs)
-        result = subprocess.run(command, stdout=subprocess.PIPE, input=input, timeout=120, encoding='utf-8', check=True)
+        result = subprocess.run(command, stdout=subprocess.PIPE, input=input, timeout=300, encoding='utf-8', check=True)
         lines = result.stdout.strip().split('\n')
         print('\nStdout:\n  {}\n'.format('\n  '.join(lines)))
         return lines[-1]

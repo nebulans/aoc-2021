@@ -1,6 +1,7 @@
 package input
 
 import (
+	"aoc-2021/util/math/vector"
 	"strconv"
 	"strings"
 )
@@ -35,4 +36,9 @@ func ParseInts(parts []string) []int {
 
 func SplitInts(in string, sep string) []int {
 	return ParseInts(strings.Split(in, sep))
+}
+
+func ParseVec3(in string) vector.Vec3 {
+	nums := SplitInts(in, ",")
+	return vector.Vec3{nums[0], nums[1], nums[2]}
 }
