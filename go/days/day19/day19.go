@@ -98,17 +98,17 @@ type AlignResult struct {
 func Align(anchor *PointCloud, other *PointCloud) AlignResult {
 	for _, r := range vector.ProperRotations {
 		rotated := other.Rotate(r)
+		offsetCounts := map[vector.Vec3]int{}
 		for i, _ := range anchor.Points {
 			for j, _ := range rotated.Points {
 				offset := i.Sub(j)
-				translated := rotated.Offset(offset)
-				coincident := anchor.CoincidentCount(translated)
-				if coincident >= 12 {
+				offsetCounts[offset]++
+				if offsetCounts[offset] >= 12 {
 					return AlignResult{
 						Offset:      offset,
 						Rotation:    r,
-						Cloud:       translated,
-						Overlapping: coincident,
+						Cloud:       rotated.Offset(offset),
+						Overlapping: offsetCounts[offset],
 					}
 				}
 			}
@@ -117,7 +117,7 @@ func Align(anchor *PointCloud, other *PointCloud) AlignResult {
 	return AlignResult{}
 }
 
-func (p *Puzzle) distinctPointsAnchor() int {
+func (p *Puzzle) AlignAll() {
 	aligned := make([]*PointCloud, 1, len(p.scanners))
 	aligned[0] = p.scanners[0].Copy()
 	unaligned := make([]*PointCloud, len(p.scanners)-1)
@@ -141,8 +141,13 @@ func (p *Puzzle) distinctPointsAnchor() int {
 		}
 		unaligned = newUnaligned
 	}
+	p.scanners = aligned
+}
+
+func (p *Puzzle) distinctPointsAnchor() int {
+	p.AlignAll()
 	combined := MakePointCloud()
-	for _, c := range aligned {
+	for _, c := range p.scanners {
 		for k, _ := range c.Points {
 			combined.Add(k)
 		}
@@ -151,32 +156,10 @@ func (p *Puzzle) distinctPointsAnchor() int {
 }
 
 func (p *Puzzle) maxManhattan() int {
-	aligned := make([]*PointCloud, 1, len(p.scanners))
-	aligned[0] = p.scanners[0].Copy()
-	unaligned := make([]*PointCloud, len(p.scanners)-1)
-	copy(unaligned, p.scanners[1:])
-
-	for len(unaligned) > 0 {
-		fmt.Printf("%d unaligned\n", len(unaligned))
-		newUnaligned := make([]*PointCloud, 0, len(unaligned)-1)
-		for _, cloud := range unaligned {
-			merged := false
-			for _, anchor := range aligned {
-				ar := Align(anchor, cloud)
-				if ar.Overlapping >= 12 {
-					aligned = append(aligned, ar.Cloud)
-					merged = true
-				}
-			}
-			if !merged {
-				newUnaligned = append(newUnaligned, cloud)
-			}
-		}
-		unaligned = newUnaligned
-	}
+	p.AlignAll()
 	m := 0
-	for i, I := range aligned {
-		for j, J := range aligned {
+	for i, I := range p.scanners {
+		for j, J := range p.scanners {
 			if i >= j {
 				continue
 			}
