@@ -51,6 +51,13 @@ func (g *IntGrid) SparseFormatter(val int) string {
 	return fmt.Sprintf("%d", val)
 }
 
+func (g *IntGrid) BoolFormatter(val int) string {
+	if val == 0 {
+		return "."
+	}
+	return "#"
+}
+
 func (g *IntGrid) PaddedFormatter(val int) string {
 	return fmt.Sprintf("%3d ", val)
 }
