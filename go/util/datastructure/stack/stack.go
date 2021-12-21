@@ -31,6 +31,10 @@ func (s *Stack) IsEmpty() bool {
 	return s.position < 1
 }
 
+func (s *Stack) Len() int {
+	return s.position
+}
+
 func MakeStack(size int) *Stack {
 	return &Stack{
 		items:    make([]interface{}, size),
