@@ -9,6 +9,13 @@ func Max(a int, b int) int {
 	return b
 }
 
+func Min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func MaxSlice(s []int) int {
 	m := s[0]
 	for _, v := range s {
